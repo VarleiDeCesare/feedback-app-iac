@@ -4,7 +4,7 @@ import { EcrStack } from "../lib/ecr-stack";
 import { VpcStack } from "../lib/vpc-stack";
 import { LoadBalancerStack } from "../lib/lb-stack";
 import { ClusterStack } from "../lib/cluster-stack";
-// import { FeedbackServiceStack } from "../lib/feedbackService-stack";
+import { FeedbackServiceStack } from "../lib/feedbackService-stack";
 
 const app = new cdk.App();
 
@@ -30,7 +30,7 @@ const vpcStack = new VpcStack(app, "Vpc", {
 
 const lbStack = new LoadBalancerStack(app, "LoadBalancer", {
   vpc: vpcStack.vpc,
-  env: env,
+  env,
   tags: tagsInfra,
 });
 lbStack.addDependency(vpcStack);
@@ -42,22 +42,23 @@ const clusterStack = new ClusterStack(app, "Cluster", {
 });
 clusterStack.addDependency(vpcStack);
 
-// const tagsFeedbackApplication = {
-//   cost: "FeedbackApp",
-//   team: "varlei-team",
-// };
+const tagsFeedbackApplication = {
+  cost: "FeedbackApp",
+  team: "varlei-team",
+};
 
-//skipping the feedback service stack creation for now
-// const feedbackApp = new FeedbackServiceStack(app, "FeedbackApp", {
-//   vpc: vpcStack.vpc,
-//   cluster: clusterStack.cluster,
-//   nlb: lbStack.nlb,
-//   alb: lbStack.alb,
-//   repository: ecrStack.repository,
-//   region: env.region as string,
-//   tags: tagsFeedbackApplication,
-// });
-// feedbackApp.addDependency(lbStack);
-// feedbackApp.addDependency(clusterStack);
-// feedbackApp.addDependency(vpcStack);
-// feedbackApp.addDependency(ecrStack);
+const feedbackApp = new FeedbackServiceStack(app, "FeedbackApp", {
+  vpc: vpcStack.vpc,
+  cluster: clusterStack.cluster,
+  env,
+  nlb: lbStack.nlb,
+  alb: lbStack.alb,
+  repository: ecrStack.repository,
+  region: lbStack.region,
+  tags: tagsFeedbackApplication,
+});
+
+feedbackApp.addDependency(lbStack);
+feedbackApp.addDependency(clusterStack);
+feedbackApp.addDependency(vpcStack);
+feedbackApp.addDependency(ecrStack);

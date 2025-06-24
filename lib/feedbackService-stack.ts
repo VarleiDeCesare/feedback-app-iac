@@ -37,8 +37,8 @@ export class FeedbackServiceStack extends cdk.Stack {
       this,
       "TaskDefinition",
       {
-        cpu: 512,
-        memoryLimitMiB: 1024,
+        cpu: 1024,
+        memoryLimitMiB: 2048,
         family: "feedback-service",
       }
     );
@@ -68,38 +68,12 @@ export class FeedbackServiceStack extends cdk.Stack {
           protocol: ecs.Protocol.TCP,
         },
       ],
-      cpu: 384,
-      memoryLimitMiB: 896,
+      cpu: 1024,
+      memoryLimitMiB: 2048,
       environment: {
-        AWS_DYNAMO_TABLE_NAME: feedbackDdb.tableName,
-        // AWS_DYNAMO_ENDPOINT_URL: feedbackDdb.tableArn, //Apparently not needed
-        // AWS_DYNAMO_REGION: this.region, //Also apparently not needed
+        AWS_DYNAMO_TABLE_NAME: feedbackDdb.tableName
       },
     });
-
-    //no need for now
-    // taskDefinition.addContainer("xray", {
-    //   image: ecs.ContainerImage.fromRegistry(
-    //     "public.ecr.aws/xray/aws-xray-daemon:latest"
-    //   ),
-    //   containerName: "XRayProductsService",
-    //   logging: ecs.LogDriver.awsLogs({
-    //     logGroup: new logs.LogGroup(this, "XRayLogGroup", {
-    //       logGroupName: "XRayProductsService",
-    //       removalPolicy: cdk.RemovalPolicy.DESTROY,
-    //       retention: logs.RetentionDays.ONE_MONTH,
-    //     }),
-    //     streamPrefix: "XRayProductsService",
-    //   }),
-    //   cpu: 128,
-    //   memoryLimitMiB: 128,
-    //   portMappings: [
-    //     {
-    //       containerPort: 2000,
-    //       protocol: ecs.Protocol.UDP,
-    //     },
-    //   ],
-    // });
 
     const albListener = props.alb.addListener("FeedbackServiceAlbListener", {
       port: APPLICATION_PORT,
@@ -112,12 +86,14 @@ export class FeedbackServiceStack extends cdk.Stack {
       cluster: props.cluster,
       taskDefinition: taskDefinition,
       desiredCount: 2,
+      minHealthyPercent: 50,
     });
     props.repository.grantPull(taskDefinition.taskRole);
 
     service.connections.securityGroups[0].addIngressRule(
       ec2.Peer.ipv4(props.vpc.vpcCidrBlock),
-      ec2.Port.tcp(300)
+      ec2.Port.tcp(APPLICATION_PORT),
+      "Allow NLB traffic"
     );
 
     albListener.addTargets("FeedbackServiceAlbTarget", {

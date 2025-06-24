@@ -17,7 +17,10 @@ export class LoadBalancerStack extends cdk.Stack {
     this.nlb = new elbv2.NetworkLoadBalancer(this, "Nlb", {
       loadBalancerName: "FeedbackNlb",
       vpc: props.vpc,
-      internetFacing: false,
+      internetFacing: true,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC,
+      }
     });
 
     this.alb = new elbv2.ApplicationLoadBalancer(this, "Alb", {

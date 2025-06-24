@@ -16,7 +16,7 @@ export class ClusterStack extends cdk.Stack {
     this.cluster = new ecs.Cluster(this, "FeedbackCluster", {
       vpc: props.vpc,
       clusterName: "Feedback",
-      containerInsights: true,
+      containerInsightsV2: ecs.ContainerInsights.ENABLED,
     });
   }
 }
