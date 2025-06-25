@@ -51,7 +51,6 @@ const feedbackApp = new FeedbackServiceStack(app, "FeedbackApp", {
   vpc: vpcStack.vpc,
   cluster: clusterStack.cluster,
   env,
-  nlb: lbStack.nlb,
   alb: lbStack.alb,
   repository: ecrStack.repository,
   region: lbStack.region,

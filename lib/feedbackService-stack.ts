@@ -11,7 +11,6 @@ import * as iam from "aws-cdk-lib/aws-iam";
 interface FeedbackServiceStackProps extends cdk.StackProps {
   vpc: ec2.Vpc;
   cluster: ecs.Cluster;
-  nlb: elbv2.NetworkLoadBalancer;
   alb: elbv2.ApplicationLoadBalancer;
   repository: ecr.Repository;
   region: string;
@@ -75,10 +74,10 @@ export class FeedbackServiceStack extends cdk.Stack {
       },
     });
 
-    const albListener = props.alb.addListener("FeedbackServiceAlbListener", {
-      port: APPLICATION_PORT,
-      protocol: elbv2.ApplicationProtocol.HTTP,
-      open: true,
+    const albListener = props.alb.addListener("FeedbackServiceAlbListener", 
+      {
+        port: 80,
+        protocol: elbv2.ApplicationProtocol.HTTP
     });
 
     const service = new ecs.FargateService(this, "FeedbackService", {
@@ -109,24 +108,6 @@ export class FeedbackServiceStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         path: "/health",
       },
-    });
-
-    const nlbListener = props.nlb.addListener("FeedbackServiceNlbListener", {
-      port: APPLICATION_PORT,
-      protocol: elbv2.Protocol.TCP,
-    });
-
-    nlbListener.addTargets("FeedbackServiceNlbTarget", {
-      port: APPLICATION_PORT,
-      targetGroupName: "FeedbackServiceNlb",
-      protocol: elbv2.Protocol.TCP,
-      targets: [
-        service.loadBalancerTarget({
-          containerName: "feedbackService",
-          containerPort: APPLICATION_PORT,
-          protocol: ecs.Protocol.TCP,
-        }),
-      ],
     });
 
     const scalableTaskCount = service.autoScaleTaskCount({
