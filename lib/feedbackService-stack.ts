@@ -7,7 +7,6 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
-
 interface FeedbackServiceStackProps extends cdk.StackProps {
   vpc: ec2.Vpc;
   cluster: ecs.Cluster;
@@ -17,19 +16,21 @@ interface FeedbackServiceStackProps extends cdk.StackProps {
 }
 
 const APPLICATION_PORT = 3000;
+const DYNAMO_TABLE_NAME = "feedbacks";
 
 export class FeedbackServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: FeedbackServiceStackProps) {
     super(scope, id, props);
 
     const feedbackDdb = new dynamodb.Table(this, "FeedbackDdb", {
-      tableName: "feedbacks",
+      tableName: DYNAMO_TABLE_NAME,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       partitionKey: {
-        name: "Id",
-        type: dynamodb.AttributeType.STRING,
-      },
+      name: "Id",
+      type: dynamodb.AttributeType.STRING,
+    },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      stream: dynamodb.StreamViewType.NEW_IMAGE, // New item capture
     });
 
     const taskDefinition = new ecs.FargateTaskDefinition(
