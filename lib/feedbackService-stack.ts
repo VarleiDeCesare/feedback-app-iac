@@ -59,7 +59,7 @@ export class FeedbackServiceStack extends cdk.Stack {
     });
 
     taskDefinition.addContainer("FeedbackServiceContainer", {
-      image: ecs.ContainerImage.fromEcrRepository(props.repository, "1.0.0"),
+      image: ecs.ContainerImage.fromEcrRepository(props.repository, "1.0.1"),
       containerName: "feedbackService",
       logging: logDriver,
       portMappings: [
